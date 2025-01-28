@@ -1,15 +1,27 @@
 const express = require('express');
-const { resolve } = require('path');
-
+const mongoose = require('mongoose');
+const User = require('./models/schema'); // Assuming schema.js is in the "models" folder
 const app = express();
-const port = 3010;
 
-app.use(express.static('static'));
+// Middleware
+app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.sendFile(resolve(__dirname, 'pages/index.html'));
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/yourDB', { useNewUrlParser: true, useUnifiedTopology: true });
+
+// POST route to create a new user
+app.post('/users', async (req, res) => {
+  const { username, email, password } = req.body;
+  try {
+    const newUser = new User({ username, email, password });
+    await newUser.save(); // Save the new user to the database
+    res.status(201).send(newUser);
+  } catch (err) {
+    res.status(400).send({ message: 'Error creating user', error: err });
+  }
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+// Start the server
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
 });
